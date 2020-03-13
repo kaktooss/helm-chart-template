@@ -1,0 +1,24 @@
+replicaCount: 1
+appName: kaktooss
+
+probe:
+  liveness:
+    delay: 300
+
+image:
+  repository: nowhere/kaktooss
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  port: 8080
+  nodeport: 30880
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+ingress:
+  enabled: false

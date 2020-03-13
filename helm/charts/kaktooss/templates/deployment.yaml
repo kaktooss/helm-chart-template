@@ -1,0 +1,73 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "kaktooss.fullname" . }}
+  labels:
+    app: {{ template "kaktooss.name" . }}
+    chart: {{ template "kaktooss.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "kaktooss.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "kaktooss.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      serviceAccountName: kaktooss
+      volumes:
+        - name: app-config
+          configMap:
+            name: kaktooss
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: APP_NAME
+            value: {{ .Values.appName }}
+          volumeMounts:
+            - name: app-config
+              readOnly: true
+              mountPath: /application.yaml
+              subPath: application.yaml
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: {{ default 120 .Values.probe.liveness.delay }}
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /api/actuator/health
+              port: {{ .Values.service.port }}
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /api/actuator/health
+              port: {{ .Values.service.port }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

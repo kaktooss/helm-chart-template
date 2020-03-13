@@ -1,0 +1,11 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kaktooss
+  labels:
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app: {{ template "kaktooss.name" . }}
+data:
+{{ (tpl (.Files.Glob "config/*").AsConfig . ) | indent 2 }}

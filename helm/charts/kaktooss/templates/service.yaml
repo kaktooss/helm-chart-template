@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "kaktooss.fullname" . }}
+  labels:
+    app: {{ template "kaktooss.name" . }}
+    chart: {{ template "kaktooss.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 8080
+      protocol: TCP
+      name: http
+      {{- if eq .Values.service.type "NodePort" }}
+      nodePort: {{ .Values.service.nodeport }}
+      {{- end }}
+  selector:
+    app: {{ template "kaktooss.name" . }}
+    release: {{ .Release.Name }}
